@@ -8,11 +8,11 @@ import Slider from "@/components/main_compoenets/Slider";
 function home() {
     return (
         <>
-        <Slider />
-        <div className=" ">
-            <MovieCard />        
-        </div>
-       
+            <Slider />
+            <div className=" ">
+                <MovieCard />
+            </div>
+
 
         </>
     )
