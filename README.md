@@ -1,0 +1,3 @@
+Cine suggest is a dynamic movie discovery website that allows users to: ✅ Browse Popular Movies – Fetch real-time data from TMDB API ✅ Search for Movies – Find movies by title or genre ✅ User Authentication – Secure login & signup system ✅ Personalized Watchlist – Save favorite movies for future viewing ✅ Responsive UI – Works smoothly across all devices
+
+🛠️ Tech Stack ✅ Frontend: React.js, Tailwind CSS, Axios for API calls ✅ Backend: Node.js, Express.js, MongoDB (for user authentication & watchlist) ✅ API Integration: TMDB API for real-time movie data ✅ Authentication: JWT-based login/signup system
