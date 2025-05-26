@@ -23,7 +23,7 @@ function SignUp() {
     setSuccess(false);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}`, formData);
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/register`, formData);
 
       setMessage(res.data.message || "Registration successful!");
       setSuccess(true);
