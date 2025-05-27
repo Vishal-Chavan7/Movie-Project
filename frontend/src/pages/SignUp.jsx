@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-
+import useAuthStore from "../store/updateState.js";
 function SignUp() {
   const [formData, setFormData] = useState({
     name: "",
@@ -16,11 +16,13 @@ function SignUp() {
     setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
+  const setRegistered = useAuthStore((state) => state.setRegistered);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     setSuccess(false);
+    
 
     console.log("Submitting registration with data:", formData);
 
@@ -32,6 +34,7 @@ function SignUp() {
       setMessage(res.data.message || "Registration successful!");
       setSuccess(true);
       setFormData({ name: "", email: "", password: "" });
+      setRegistered(true);
     } catch (err) {
       console.log("Registration error:", err);
       setMessage(err.response?.data?.message || "Registration failed.");

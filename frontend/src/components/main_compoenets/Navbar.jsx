@@ -1,4 +1,5 @@
 import React from 'react';
+import useAuthStore from "../../store/updateState.js";
 import {
   Search,
   CircleFadingPlus,
@@ -10,17 +11,21 @@ import {
 import { Link } from 'react-router-dom';
 
 function Navbar() {
+  const isRegistered = useAuthStore((state) => state.isRegistered);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const logout = useAuthStore((state) => state.logout);
+
   return (
     <nav className="bg-[#1F1F1F] text-white flex flex-wrap md:flex-nowrap justify-between items-center px-4 sm:px-6 lg:px-20 py-4 gap-4">
-      
+
       <div className="text-2xl font-bold">
         <Link to="/" className="text-white hover:text-gray-200 transition">
           <span className="text-3xl font-bold ">Cinematic</span>
         </Link>
-        
-        </div>
 
-      
+      </div>
+
+
       <div className="md:flex">
         <a
           href="#"
@@ -31,7 +36,7 @@ function Navbar() {
         </a>
       </div>
 
-      
+
       <div className="w-full md:w-1/2 lg:w-1/3">
         <div className="relative">
           <input
@@ -43,7 +48,7 @@ function Navbar() {
         </div>
       </div>
 
-      
+
       <ul className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-end">
         <li>
           <Link
@@ -64,13 +69,34 @@ function Navbar() {
           </Link>
         </li>
         <li>
-          <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
-          >
-            <LogIn className="w-4 h-4" />
-            Sign Up
-          </Link>
+          {
+            isLoggedIn ? (
+              <button
+                onClick={logout}
+                className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+              >
+                <LogIn className="w-4 h-4" />
+                Logout
+              </button>
+            ) :
+            isRegistered ? (
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign Up
+              </Link>
+            ):(
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </Link>
+            )
+          }
         </li>
       </ul>
     </nav>

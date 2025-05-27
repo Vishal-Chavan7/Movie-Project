@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import axios from "axios";
+import useAuthStore from "../store/updateState.js";
 function Login() {
 
   const [formData, setFormData] = useState({
@@ -12,9 +13,12 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+
+  const setLoggedIn = useAuthStore((state) => state.setLoggedIn);
   const handleChange = (e) =>{
     setFormData(prev => ({...prev, [e.target.id]: e.target.value}))
   }
+
 
   const handleSubmit = async (e) =>{
     e.preventDefault();
@@ -27,6 +31,7 @@ function Login() {
       setMessage(res.data.message || "Login successful!");
       setSuccess(true);
       setFormData({ email: "", password: "" });
+      setLoggedIn(true);
     }catch(err){
       setMessage(err.response?.data?.message || "Login failed.");
       setSuccess(false);
