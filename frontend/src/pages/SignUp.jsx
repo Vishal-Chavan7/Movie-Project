@@ -22,13 +22,18 @@ function SignUp() {
     setMessage("");
     setSuccess(false);
 
+    console.log("Submitting registration with data:", formData);
+
     try {
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/register`, formData);
+
+      console.log("Registration response:", res.data);
 
       setMessage(res.data.message || "Registration successful!");
       setSuccess(true);
       setFormData({ name: "", email: "", password: "" });
     } catch (err) {
+      console.log("Registration error:", err);
       setMessage(err.response?.data?.message || "Registration failed.");
       setSuccess(false);
     } finally {
