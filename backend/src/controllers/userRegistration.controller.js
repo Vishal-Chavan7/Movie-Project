@@ -1,6 +1,9 @@
 import User from "../models/user.model.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken"
+
 
 const userRegistration = async (req, res) => {
   const { name, email, password } = req.body;
@@ -110,4 +113,69 @@ const verifyEmail = async (req,res) =>{
     }
 }
 
-export { userRegistration, verifyEmail};
+const login  = async (req, res)=>{
+    const {email, password} = req.body;
+
+    if(!email || !password){
+        return res.status(400).json({
+            message: "Please fill all the fields",
+            success: false  
+        })
+    }
+
+    try{
+        const existingUser = await User.findOne({email});
+
+        if(!existingUser){
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            })
+        }
+        const isMatch = await bcrypt.compare(password, existingUser.password);
+        if(!isMatch){
+            return res.status(400).json({
+                message: "Invalid credentials",
+                success: false
+            })
+        }
+
+        if(!existingUser.isVerified){
+            return res.status(400).json({
+                message: "User not verified",
+                success: false
+            })
+        }
+
+        const token = jwt.sign({id: existingUser._id}, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRATION
+        });
+        console.log("Generated JWT token:", token);
+
+        res.cookie("token", token,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "strict", 
+            maxAge: 24 * 60 * 60 * 1000, // 1d,
+            path: "/"
+
+        })
+
+
+        return res.status(200).json({
+            message: "Login successful",
+            success: true,
+            user: existingUser,
+            token: token
+        })
+    }catch(error){
+        console.log("Login error: ", error);
+        return res.status(500).json({
+            message: "Server error",
+            error: error.message,
+            success: false
+        })
+    }
+}
+
+export { userRegistration, verifyEmail, login};
