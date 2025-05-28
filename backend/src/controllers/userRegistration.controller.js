@@ -178,4 +178,26 @@ const login  = async (req, res)=>{
     }
 }
 
-export { userRegistration, verifyEmail, login};
+const logout = async(req,res) =>{
+    try{
+        res.clearCookie("token",{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "strict", 
+            path: "/"
+        })
+        return res.status(200).json({
+            message: "Logout successful",
+            success: true
+        })
+    }catch(error){
+        console.log("Logout error: ", error);
+        return res.status(500).json({
+            message: "Server error",
+            error: error.message,
+            success: false
+        })
+    }
+}
+
+export { userRegistration, verifyEmail, login, logout };
