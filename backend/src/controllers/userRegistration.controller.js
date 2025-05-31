@@ -113,90 +113,102 @@ const verifyEmail = async (req,res) =>{
     }
 }
 
-const login  = async (req, res)=>{
-    const {email, password} = req.body;
+const login  = async (req, res) => {
+    const { email, password } = req.body;
 
-    if(!email || !password){
+    console.log("Login request received:", req.body);
+
+    if (!email || !password) {
+        console.log("Missing email or password:", { email, password });
         return res.status(400).json({
             message: "Please fill all the fields",
             success: false  
-        })
+        });
     }
 
-    try{
-        const existingUser = await User.findOne({email});
+    try {
+        const existingUser = await User.findOne({ email });
+        console.log("User lookup result:", existingUser);
 
-        if(!existingUser){
+        if (!existingUser) {
+            console.log("User not found for email:", email);
             return res.status(404).json({
                 message: "User not found",
                 success: false
-            })
+            });
         }
+
         const isMatch = await bcrypt.compare(password, existingUser.password);
-        if(!isMatch){
+        console.log("Password match result:", isMatch);
+
+        if (!isMatch) {
+            console.log("Invalid credentials for email:", email);
             return res.status(400).json({
                 message: "Invalid credentials",
                 success: false
-            })
+            });
         }
 
-        if(!existingUser.isVerified){
+        if (!existingUser.isVerified) {
+            console.log("User not verified:", email);
             return res.status(400).json({
                 message: "User not verified",
                 success: false
-            })
+            });
         }
 
-        const token = jwt.sign({id: existingUser._id}, process.env.JWT_SECRET, {
+        const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRATION
         });
         console.log("Generated JWT token:", token);
 
-        res.cookie("token", token,{
+        res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", 
-            sameSite: "strict", 
+            sameSite: "none", 
             maxAge: 24 * 60 * 60 * 1000, // 1d,
             path: "/"
+        });
 
-        })
-
+        console.log("Cookie set for user:", existingUser.email);
 
         return res.status(200).json({
             message: "Login successful",
             success: true,
             user: existingUser,
             token: token
-        })
-    }catch(error){
+        });
+    } catch (error) {
         console.log("Login error: ", error);
         return res.status(500).json({
             message: "Server error",
             error: error.message,
             success: false
-        })
+        });
     }
 }
 
-const logout = async(req,res) =>{
-    try{
-        res.clearCookie("token",{
+const logout = async (req, res) => {
+    console.log("Logout request received");
+    try {
+        res.clearCookie("token", {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", 
-            sameSite: "strict", 
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
             path: "/"
-        })
+        });
+        console.log("Token cookie cleared");
         return res.status(200).json({
-            message: "Logout successful",
+            message: "Logout successful!!!!!!!!!!!",
             success: true
-        })
-    }catch(error){
+        });
+    } catch (error) {
         console.log("Logout error: ", error);
         return res.status(500).json({
             message: "Server error",
             error: error.message,
             success: false
-        })
+        });
     }
 }
 

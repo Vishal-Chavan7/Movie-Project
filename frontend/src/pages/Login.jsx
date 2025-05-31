@@ -2,6 +2,7 @@ import React from "react";
 import { useState } from "react";
 import axios from "axios";
 import useAuthStore from "../store/updateState.js";
+import { useNavigate } from "react-router-dom";
 function Login() {
 
   const [formData, setFormData] = useState({
@@ -13,8 +14,8 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-
-  const setLoggedIn = useAuthStore((state) => state.setLoggedIn);
+const setLoggedIn = useAuthStore((state) => state.setLoggedIn);
+const navigate = useNavigate();
   const handleChange = (e) =>{
     setFormData(prev => ({...prev, [e.target.id]: e.target.value}))
   }
@@ -32,6 +33,7 @@ function Login() {
       setSuccess(true);
       setFormData({ email: "", password: "" });
       setLoggedIn(true);
+      navigate("/");
     }catch(err){
       setMessage(err.response?.data?.message || "Login failed.");
       setSuccess(false);

@@ -1,18 +1,70 @@
-import React from 'react'
-import useFetch from '@/hooks/useFetch'
+import React from 'react';
+import useFetch from '@/hooks/useFetch';
+import axios from "axios";
+import useAuthStore from "../../store/updateState.js";
+import { useNavigate } from "react-router-dom";
 
 function MovieCard() {
     const { data: movies = [], loading, error } = useFetch("movie/popular");
-    console.log(movies)
+    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+    const navigate = useNavigate();
 
-    if (loading) return <div className='text-white text-2xl'>Loading...</div>
-    if (error) return <span className='text-red-800 font-serif pl-10 pr-10 mt-50 w-200 ml-auto mr-auto rounded-md p-4 flex justify-center items-center bg-white    text-2xl'>{error}</span>
-    if (!movies || movies.length === 0) return <div className='text-white text-2xl'>No Movies Found</div>
+    console.log("Fetched movies:", movies);
+    console.log("Loading:", loading, "Error:", error);
+    console.log("isLoggedIn:", isLoggedIn);
+
+    if (loading) {
+        console.log("Loading movies...");
+        return <div className='text-white text-2xl'>Loading...</div>;
+    }
+    if (error) {
+        console.log("Error fetching movies:", error);
+        return (
+            <span className='text-red-800 font-serif pl-10 pr-10 mt-50 w-200 ml-auto mr-auto rounded-md p-4 flex justify-center items-center bg-white text-2xl'>
+                {error}
+            </span>
+        );
+    }
+    if (!movies || movies.length === 0) {
+        console.log("No Movies Found");
+        return <div className='text-white text-2xl'>No Movies Found</div>;
+    }
+
+    const handleAddToWatchlist = async (movie) => {
+        console.log("handleAddToWatchlist called with:", movie);
+        if (!isLoggedIn) {
+            alert("Please login to add movies to your watchlist.");
+            console.log("User not logged in, redirecting to login.");
+            navigate("/login");
+            return;
+        }
+        try {
+            const payload = {
+                movieId: movie.id,
+                title: movie.title,
+                poster: movie.poster_path,
+                releaseDate: movie.release_date
+            };
+            console.log("Sending POST to backend with:", payload);
+            const response = await axios.post(
+                `${import.meta.env.VITE_BACKEND_API_URL}/watchlist`,
+                payload,
+                { withCredentials: true }
+            );
+            console.log('Movie added to backend', response.data);
+            alert('Movie added to backend watchlist successfully!');
+        } catch (error) {
+            console.error('Error adding movie to watchlist:', error);
+            if (error.response) {
+                console.error('Backend response:', error.response.data);
+            }
+            alert('Failed to add movie to backend watchlist. Please try again.');
+        }
+    };
 
     return (
-
         <div className='m-16'>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-12 mx-14 mt-16  ">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-12 mx-14 mt-16">
                 {movies.map((movie) => (
                     <div
                         key={movie.id}
@@ -27,7 +79,14 @@ function MovieCard() {
                             />
                             {/* Watchlist icon */}
                             <div className="absolute top-2 right-2 flex space-x-2">
-                                <button className="text-white text-xl bg-black/50 p-1 rounded-full hover:bg-black/70">
+                                <button
+                                    className="text-white text-xl bg-black/50 p-1 rounded-full hover:bg-black/70"
+                                    onClick={() => {
+                                        console.log("Add to Watchlist button clicked for:", movie);
+                                        handleAddToWatchlist(movie);
+                                    }}
+                                    title={isLoggedIn ? "Add to Watchlist" : "Login to add"}
+                                >
                                     +
                                 </button>
                             </div>
@@ -62,11 +121,7 @@ function MovieCard() {
                 ))}
             </div>
         </div>
-
-
-
-
-    )
+    );
 }
 
-export default MovieCard
+export default MovieCard;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import useAuthStore from "../store/updateState.js";
+import { useNavigate } from "react-router-dom";
 function SignUp() {
   const [formData, setFormData] = useState({
     name: "",
@@ -12,11 +13,15 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const setRegistered = useAuthStore((state) => state.setRegistered);
+  const navigate = useNavigate();
+  
+
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  const setRegistered = useAuthStore((state) => state.setRegistered);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -35,6 +40,7 @@ function SignUp() {
       setSuccess(true);
       setFormData({ name: "", email: "", password: "" });
       setRegistered(true);
+      navigate("/login");
     } catch (err) {
       console.log("Registration error:", err);
       setMessage(err.response?.data?.message || "Registration failed.");

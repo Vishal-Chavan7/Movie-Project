@@ -6,7 +6,7 @@ import React from 'react'
 import Profile from "./pages/Profile"
 import Login from "./pages/Login"
 import SignUp from "./pages/SignUp"
-import Watchlist from "./pages/Watchlist"
+import Watchlist from './pages/Watchlist';
 import Navbar from "./components/main_compoenets/Navbar"
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/profile" element={<Profile/>} />
-            <Route path="/watchlist/:id" element={<Watchlist/>} />
+            <Route path="/watchlist" element={<Watchlist />} />
           </Routes>
           <Footer />
         </div>
