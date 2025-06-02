@@ -22,23 +22,30 @@ const navigate = useNavigate();
 
 
   const handleSubmit = async (e) =>{
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-    setSuccess(false);
+  e.preventDefault();
+  setLoading(true);
+  setMessage("");
+  setSuccess(false);
 
-    try{
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/login`, formData);
-      setMessage(res.data.message || "Login successful!");
-      setSuccess(true);
-      setFormData({ email: "", password: "" });
-      setLoggedIn(true);
-      navigate("/");
-    }catch(err){
-      setMessage(err.response?.data?.message || "Login failed.");
-      setSuccess(false);
-    }
+  try{
+    const res = await axios.post(
+      `${import.meta.env.VITE_BACKEND_API_URL}/login`,
+      formData,
+      { withCredentials: true } 
+    );
+    console.log("Login response:", res.data); // Log the whole response
+    console.log("Token received from backend:", res.data.token); // Log the token
+
+    setMessage(res.data.message || "Login successful!");
+    setSuccess(true);
+    setFormData({ email: "", password: "" });
+    setLoggedIn(true);
+    navigate("/");
+  }catch(err){
+    setMessage(err.response?.data?.message || "Login failed.");
+    setSuccess(false);
   }
+}
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <form 

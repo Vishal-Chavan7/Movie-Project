@@ -18,24 +18,22 @@ function Navbar() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 
-  const handleLogout = async () =>{
-    console.log("Logout button clicked");
-    try{
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/logout`, {}, { withCredentials: true });
-      console.log("Backend Logout response:", res.data);
+  const handleLogout = async () => {
+    try {
+      console.log("Logout triggered from frontend");
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_API_URL}/logout`, {}, {
+        withCredentials: true,
+      });
+
       if (res.data.success) {
-        console.log("Logout successful");
         logout(); // Update Zustand state
-        navigate("/login"); // Redirect to login page
-      } else {
-        console.error("Logout failed:", res.data.message);
+        navigate("/login");
       }
+    } catch (error) {
+      console.error("Logout failed:", error.response?.data || error.message);
     }
-    catch (error) {
-      console.error("Error during logout:", error);
-      alert("Logout failed. Please try again.");
-    }
-  }
+  };
+
 
   return (
     <nav className="bg-[#1F1F1F] text-white flex flex-wrap md:flex-nowrap justify-between items-center px-4 sm:px-6 lg:px-20 py-4 gap-4">
@@ -68,6 +66,7 @@ function Navbar() {
       </div>
 
       <ul className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-end">
+        {/* Watchlist Button */}
         <li>
           <Link
             to="/watchlist"
@@ -77,6 +76,7 @@ function Navbar() {
             Watchlist
           </Link>
         </li>
+        {/* Profile Button */}
         <li>
           <Link
             to="/profile"
@@ -86,6 +86,17 @@ function Navbar() {
             Profile
           </Link>
         </li>
+        {/* Sign Up Button (always visible) */}
+        <li>
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+          >
+            <LogIn className="w-4 h-4" />
+            Sign Up
+          </Link>
+        </li>
+        {/* Login/Logout Button */}
         <li>
           {isLoggedIn ? (
             <button
@@ -95,14 +106,6 @@ function Navbar() {
               <LogOut className="w-4 h-4" />
               Logout
             </button>
-          ) : !isRegistered ? (
-            <Link
-              to="/signup"
-              className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
-            >
-              <LogIn className="w-4 h-4" />
-              Sign Up
-            </Link>
           ) : (
             <Link
               to="/login"

@@ -29,38 +29,49 @@ function MovieCard() {
         console.log("No Movies Found");
         return <div className='text-white text-2xl'>No Movies Found</div>;
     }
+const handleAddToWatchlist = async (movie) => {
+    console.log("handleAddToWatchlist called with:", movie);
+    if (!isLoggedIn) {
+        alert("Please login to add movies to your watchlist.");
+        console.log("User not logged in, redirecting to login.");
+        navigate("/login");
+        return;
+    }
+    try {
+        const payload = {
+            movieId: movie.id,
+            title: movie.title,
+            poster: movie.poster_path,
+            releaseDate: movie.release_date
+        };
 
-    const handleAddToWatchlist = async (movie) => {
-        console.log("handleAddToWatchlist called with:", movie);
-        if (!isLoggedIn) {
-            alert("Please login to add movies to your watchlist.");
-            console.log("User not logged in, redirecting to login.");
-            navigate("/login");
-            return;
-        }
-        try {
-            const payload = {
-                movieId: movie.id,
-                title: movie.title,
-                poster: movie.poster_path,
-                releaseDate: movie.release_date
-            };
-            console.log("Sending POST to backend with:", payload);
-            const response = await axios.post(
-                `${import.meta.env.VITE_BACKEND_API_URL}/watchlist`,
-                payload,
-                { withCredentials: true }
-            );
-            console.log('Movie added to backend', response.data);
-            alert('Movie added to backend watchlist successfully!');
-        } catch (error) {
-            console.error('Error adding movie to watchlist:', error);
-            if (error.response) {
-                console.error('Backend response:', error.response.data);
+        console.log("Sending POST to backend with:", payload);
+        const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_API_URL}/movielist`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include", // Important for cookies!
+                body: JSON.stringify(payload)
             }
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            console.log('Movie added to backend', data);
+            alert('Movie added to backend watchlist successfully!');
+        } else {
+            console.error('Backend response:', data);
             alert('Failed to add movie to backend watchlist. Please try again.');
         }
-    };
+    } catch (error) {
+        console.error('Error adding movie to watchlist:', error);
+        alert('Failed to add movie to backend watchlist. Please try again.');
+    }
+};
 
     return (
         <div className='m-16'>
