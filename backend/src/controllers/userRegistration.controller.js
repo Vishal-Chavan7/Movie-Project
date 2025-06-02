@@ -2,8 +2,7 @@ import User from "../models/user.model.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken"
-
+import jwt from "jsonwebtoken";
 
 const userRegistration = async (req, res) => {
   const { name, email, password } = req.body;
@@ -71,7 +70,6 @@ const userRegistration = async (req, res) => {
       user: newUser,
       success: true,
     });
-
   } catch (error) {
     console.log("Registration error:", error);
     return res.status(500).json({
@@ -82,134 +80,148 @@ const userRegistration = async (req, res) => {
   }
 };
 
-const verifyEmail = async (req,res) =>{
-    const {token} = req.params;
-    console.log("Verification token received:", token);
+const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+  console.log("Verification token received:", token);
+
+  if (!token) {
+    console.log("No token provided");
+    return res.status(400).json({ message: "Invalid token" });
+  }
+
+  try {
+    const user = await User.findOne({ verificationToken: token });
+    if (!user) {
+      console.log("User not found for token:", token);
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+    console.log("User verified successfully:", user.email);
+
+    return res.status(200).json({
+      message: "Email verfied successfully",
+      user: user,
+      success: true,
+    });
+  } catch (error) {
+    console.log("Error during email verification:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  console.log("Login request received:", req.body);
+
+  if (!email || !password) {
+    console.log("Missing email or password:", { email, password });
+    return res.status(400).json({
+      message: "Please fill all the fields",
+      success: false,
+    });
+  }
+
+  try {
+    const existingUser = await User.findOne({ email });
+    console.log("User lookup result:", existingUser);
+
+    if (!existingUser) {
+      console.log("User not found for email:", email);
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, existingUser.password);
+    console.log("Password match result:", isMatch);
+
+    if (!isMatch) {
+      console.log("Invalid credentials for email:", email);
+      return res.status(400).json({
+        message: "Invalid credentials",
+        success: false,
+      });
+    }
+
+    if (!existingUser.isVerified) {
+      console.log("User not verified:", email);
+      return res.status(400).json({
+        message: "User not verified",
+        success: false,
+      });
+    }
+
+    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRATION,
+    });
+    console.log("Generated JWT token:", token);
+
     
-    if(!token) {
-        console.log("No token provided");
-        return res.status(400).json({ message: "Invalid token" });
-    }
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24, 
+      path: "/"
+    });
 
-    try{
-        const user = await User.findOne({verificationToken:token});
-        if(!user){
-            console.log("User not found for token:", token);
-            return res.status(404).json({ message: "User not found" });
-        }
-        user.isVerified = true;
-        user.verificationToken = undefined;
-        await user.save();
-        console.log("User verified successfully:", user.email);
+    console.log("cookie set with token");
+    console.log("Login successful for user:", existingUser.email);
 
-        return res.status(200).json({
-            message: "Email verfied successfully",
-            user: user, success: true
-        })
-
-    }catch(error){
-        console.log("Error during email verification:", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
-    }
-}
-
-const login  = async (req, res) => {
-    const { email, password } = req.body;
-
-    console.log("Login request received:", req.body);
-
-    if (!email || !password) {
-        console.log("Missing email or password:", { email, password });
-        return res.status(400).json({
-            message: "Please fill all the fields",
-            success: false  
-        });
-    }
-
-    try {
-        const existingUser = await User.findOne({ email });
-        console.log("User lookup result:", existingUser);
-
-        if (!existingUser) {
-            console.log("User not found for email:", email);
-            return res.status(404).json({
-                message: "User not found",
-                success: false
-            });
-        }
-
-        const isMatch = await bcrypt.compare(password, existingUser.password);
-        console.log("Password match result:", isMatch);
-
-        if (!isMatch) {
-            console.log("Invalid credentials for email:", email);
-            return res.status(400).json({
-                message: "Invalid credentials",
-                success: false
-            });
-        }
-
-        if (!existingUser.isVerified) {
-            console.log("User not verified:", email);
-            return res.status(400).json({
-                message: "User not verified",
-                success: false
-            });
-        }
-
-        const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRATION
-        });
-        console.log("Generated JWT token:", token);
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", 
-            sameSite: "none", 
-            maxAge: 24 * 60 * 60 * 1000, // 1d,
-            path: "/"
-        });
-
-        console.log("Cookie set for user:", existingUser.email);
-
-        return res.status(200).json({
-            message: "Login successful",
-            success: true,
-            user: existingUser,
-            token: token
-        });
-    } catch (error) {
-        console.log("Login error: ", error);
-        return res.status(500).json({
-            message: "Server error",
-            error: error.message,
-            success: false
-        });
-    }
-}
+    return res.status(200).json({
+      message: "Login successful",
+      success: true,
+      user: existingUser,
+      token: token,
+    });
+  } catch (error) {
+    console.log("Login error: ", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      success: false,
+    });
+  }
+};
 
 const logout = async (req, res) => {
-    console.log("Logout request received");
-    try {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            path: "/"
-        });
-        console.log("Token cookie cleared");
-        return res.status(200).json({
-            message: "Logout successful!!!!!!!!!!!",
-            success: true
-        });
-    } catch (error) {
-        console.log("Logout error: ", error);
-        return res.status(500).json({
-            message: "Server error",
-            error: error.message,
-            success: false
-        });
-    }
-}
+
+  console.log("Logout request received");
+  if (!req.user) {
+    return res.status(401).json({
+      message: "Unauthorized",
+      success: false,
+    });
+  }
+
+  try {
+    console.log(req.cookies);
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    });
+
+    console.log("Cookie cleared, user logged out");
+
+    return res.status(200).json({
+      message: "Logout successful!",
+      success: true,
+    });
+  } catch (error) {
+    console.log("Logout error: ", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      success: false,
+    });
+  }
+};
 
 export { userRegistration, verifyEmail, login, logout };
