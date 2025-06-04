@@ -1,6 +1,7 @@
 import React from 'react';
 import useAuthStore from "../../store/updateState.js";
 import axios from "axios";
+import { useState, useEffect } from "react";
 import {
   Search,
   CircleFadingPlus,
@@ -17,7 +18,29 @@ function Navbar() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
 
+  // global state login
+
+  useEffect(() => {
+    const useCheckLoginState = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/globalState`, {
+          withCredentials: true,
+        });
+        if (res.data.success) {
+          useAuthStore.getState().setLoginState(true, res.data.user);
+        } else {
+          useAuthStore.getState().setLoginState(false, null);
+        }
+      } catch (error) {
+        useAuthStore.getState().setLoginState(false, null);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    useCheckLoginState();
+  }, []);
   const handleLogout = async () => {
     try {
       console.log("Logout triggered from frontend");
@@ -34,6 +57,7 @@ function Navbar() {
     }
   };
 
+  if (!authChecked) return null;
 
   return (
     <nav className="bg-[#1F1F1F] text-white flex flex-wrap md:flex-nowrap justify-between items-center px-4 sm:px-6 lg:px-20 py-4 gap-4">
@@ -86,16 +110,18 @@ function Navbar() {
             Profile
           </Link>
         </li>
-        {/* Sign Up Button (always visible) */}
-        <li>
-          <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
-          >
-            <LogIn className="w-4 h-4" />
-            Sign Up
-          </Link>
-        </li>
+        {/* Sign Up Button (only show when not logged in) */}
+        {!isLoggedIn && (
+          <li>
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-white text-sm md:text-md font-medium transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
+            >
+              <LogIn className="w-4 h-4" />
+              Sign Up
+            </Link>
+          </li>
+        )}
         {/* Login/Logout Button */}
         <li>
           {isLoggedIn ? (

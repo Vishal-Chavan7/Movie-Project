@@ -65,7 +65,7 @@ const handleAddToWatchlist = async (movie) => {
             alert('Movie added to backend watchlist successfully!');
         } else {
             console.error('Backend response:', data);
-            alert('Failed to add movie to backend watchlist. Please try again.');
+            alert('The moivie is already in your watchlist.');
         }
     } catch (error) {
         console.error('Error adding movie to watchlist:', error);

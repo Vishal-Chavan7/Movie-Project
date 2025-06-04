@@ -44,6 +44,7 @@ const navigate = useNavigate();
   }catch(err){
     setMessage(err.response?.data?.message || "Login failed.");
     setSuccess(false);
+    setLoading(false);
   }
 }
   return (

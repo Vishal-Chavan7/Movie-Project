@@ -15,19 +15,19 @@ function SignUp() {
 
   const setRegistered = useAuthStore((state) => state.setRegistered);
   const navigate = useNavigate();
-  
+
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     setSuccess(false);
-    
+
 
     console.log("Submitting registration with data:", formData);
 
@@ -118,9 +118,8 @@ function SignUp() {
         {/* Message */}
         {message && (
           <p
-            className={`mt-4 text-center text-sm ${
-              success ? "text-green-400" : "text-red-400"
-            }`}
+            className={`mt-4 text-center text-sm ${success ? "text-green-400" : "text-red-400"
+              }`}
           >
             {message}
           </p>

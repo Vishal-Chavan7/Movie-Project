@@ -12,7 +12,7 @@ const authMiddleware = (req, res, next) => {
     req.user = decoded.id;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Token is not valid" });
+    return res.status(401).json({ message: "Token is not valid" }); 
   }
 };
 
