@@ -1,23 +1,78 @@
-import React from 'react';
-import useFetch from '@/hooks/useFetch';
+import React, { useEffect, useState } from 'react';
 import useAuthStore from "../../store/updateState.js";
 import { useNavigate } from "react-router-dom";
+import {useSearchStore} from "../../store/updateState.js";
+import axios from "axios";
 
 function MovieCard() {
-    const { data: movies = [], loading, error } = useFetch("movie/popular");
+    const searchQuery = useSearchStore((state) => state.searchQuery);
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
     const navigate = useNavigate();
 
-    console.log("Fetched movies:", movies);
-    console.log("Loading:", loading, "Error:", error);
-    console.log("isLoggedIn:", isLoggedIn);
+    const [movies, setMovies] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchMovies = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                let endpoint = "";
+                if (searchQuery && searchQuery.trim() !== "") {
+                    endpoint = `search/movie`;
+                } else {
+                    endpoint = `movie/popular`;
+                }
+                const url = `${import.meta.env.VITE_API_URL}/${endpoint}?api_key=${import.meta.env.VITE_API_KEY}&language=en-US${searchQuery && searchQuery.trim() !== "" ? `&query=${encodeURIComponent(searchQuery)}` : ""}`;
+                const res = await axios.get(url);
+                setMovies(res.data.results || []);
+            } catch (err) {
+                setError("Failed to fetch movies.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMovies();
+    }, [searchQuery]);
+
+    const handleAddToWatchlist = async (movie) => {
+        if (!isLoggedIn) {
+            alert("Please login to add movies to your watchlist.");
+            navigate("/login");
+            return;
+        }
+        try {
+            const payload = {
+                movieId: movie.id,
+                title: movie.title,
+                poster: movie.poster_path,
+                releaseDate: movie.release_date
+            };
+            const response = await fetch(
+                `${import.meta.env.VITE_BACKEND_API_URL}/movielist`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                }
+            );
+            const data = await response.json();
+            if (response.ok && data.success) {
+                alert('Movie added to backend watchlist successfully!');
+            } else {
+                alert('The movie is already in your watchlist.');
+            }
+        } catch (error) {
+            alert('Failed to add movie to backend watchlist. Please try again.');
+        }
+    };
 
     if (loading) {
-        console.log("Loading movies...");
         return <div className='text-white text-2xl'>Loading...</div>;
     }
     if (error) {
-        console.log("Error fetching movies:", error);
         return (
             <span className='text-red-800 font-serif pl-10 pr-10 mt-50 w-200 ml-auto mr-auto rounded-md p-4 flex justify-center items-center bg-white text-2xl'>
                 {error}
@@ -25,52 +80,8 @@ function MovieCard() {
         );
     }
     if (!movies || movies.length === 0) {
-        console.log("No Movies Found");
         return <div className='text-white text-2xl'>No Movies Found</div>;
     }
-const handleAddToWatchlist = async (movie) => {
-    console.log("handleAddToWatchlist called with:", movie);
-    if (!isLoggedIn) {
-        alert("Please login to add movies to your watchlist.");
-        console.log("User not logged in, redirecting to login.");
-        navigate("/login");
-        return;
-    }
-    try {
-        const payload = {
-            movieId: movie.id,
-            title: movie.title,
-            poster: movie.poster_path,
-            releaseDate: movie.release_date
-        };
-
-        console.log("Sending POST to backend with:", payload);
-        const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_API_URL}/movielist`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include", // Important for cookies!
-                body: JSON.stringify(payload)
-            }
-        );
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            console.log('Movie added to backend', data);
-            alert('Movie added to backend watchlist successfully!');
-        } else {
-            console.error('Backend response:', data);
-            alert('The moivie is already in your watchlist.');
-        }
-    } catch (error) {
-        console.error('Error adding movie to watchlist:', error);
-        alert('Failed to add movie to backend watchlist. Please try again.');
-    }
-};
 
     return (
         <div className='m-16'>
@@ -83,7 +94,9 @@ const handleAddToWatchlist = async (movie) => {
                         {/* Poster */}
                         <div className="relative">
                             <img
-                                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                                src={movie.poster_path
+                                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                                    : "https://via.placeholder.com/300x450?text=No+Image"}
                                 alt={movie.title}
                                 className="w-full h-56 object-cover"
                             />
@@ -91,10 +104,7 @@ const handleAddToWatchlist = async (movie) => {
                             <div className="absolute top-2 right-2 flex space-x-2">
                                 <button
                                     className="text-white text-xl bg-black/50 p-1 rounded-full hover:bg-black/70"
-                                    onClick={() => {
-                                        console.log("Add to Watchlist button clicked for:", movie);
-                                        handleAddToWatchlist(movie);
-                                    }}
+                                    onClick={() => handleAddToWatchlist(movie)}
                                     title={isLoggedIn ? "Add to Watchlist" : "Login to add"}
                                 >
                                     +

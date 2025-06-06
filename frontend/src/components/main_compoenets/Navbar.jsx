@@ -20,8 +20,10 @@ function Navbar() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
-  
-  const {searchQuery, setSearchQuery, clearSearchQuery} = useSearchStore();
+
+  const searchQuery = useSearchStore((state) => state.searchQuery);
+  const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
+  const clearSearchQuery = useSearchStore((state) => state.clearSearchQuery);
 
   // global state login
 
@@ -60,7 +62,7 @@ function Navbar() {
     }
   };
 
-  
+
   if (!authChecked) return null;
 
   return (
@@ -88,15 +90,15 @@ function Navbar() {
             type="text"
             name="search"
             value={searchQuery}
-             onChange={(e) => {
-                setSearchQuery(e.target.value)
-                console.log("Search query updated:", e.target.value);
-                if (e.target.value === "") {
-                  clearSearchQuery();
-                }
-              }}   
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              console.log("Search query updated:", e.target.value);
+              if (e.target.value === "") {
+                clearSearchQuery();
+              }
+            }}
             placeholder="Search movie"
-            
+
             className="w-full pr-10 pl-4 py-2 rounded-md text-black font-serif bg-white shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-all duration-200 text-sm md:text-base"
           />
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-900 w-5 h-5" />
