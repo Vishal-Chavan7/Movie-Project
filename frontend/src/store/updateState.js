@@ -10,4 +10,12 @@ const useAuthStore = create((set) => ({
   logout: () => set({ isLoggedIn: false, user: null }),
 }));
 
-export default useAuthStore;
+const useSearchStore = create((set)=> ({
+  searchQuery: "",
+  setSearchQuery: (query) => set({searchQuery: query }),
+  clearSearchQuery: () => set({searchQuery: ""}),
+}))
+
+export default useAuthStore ;
+
+export { useSearchStore };

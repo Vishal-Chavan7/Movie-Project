@@ -1,6 +1,5 @@
 import React from 'react';
 import useFetch from '@/hooks/useFetch';
-import axios from "axios";
 import useAuthStore from "../../store/updateState.js";
 import { useNavigate } from "react-router-dom";
 
